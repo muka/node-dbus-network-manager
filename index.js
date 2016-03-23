@@ -155,6 +155,7 @@ var GetAllProperties = function (propIface, path, serviceName, then) {
       if(err) return then && then(err, null);
 
       propIface = enums.getInterface(propIface, false)
+
       props.GetAll(propIface, function (err, list) {
 
         if(err) return then && then(createError(err), null);
@@ -175,7 +176,7 @@ var GetAllProperties = function (propIface, path, serviceName, then) {
           var srcval = (val instanceof Array || typeof val === 'object') ?
             JSON.parse(JSON.stringify(val)) : val
 
-          var ref = enums.mapping[propIface][key]
+          var ref = enums.mapping[propIface] && enums.mapping[propIface][key] ? enums.mapping[propIface] : false
           if(ref && enums[ref]) {
             if(val instanceof Array) {
               addRawValue = true
