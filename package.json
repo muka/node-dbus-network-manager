@@ -1,5 +1,5 @@
 {
-  "name": "node-dbus-network-manager",
+  "name": "dbus-network-manager",
   "version": "1.0.0",
   "description": "A minimal DBus Network Manager API implementation ",
   "main": "index.js",
