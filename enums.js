@@ -2,22 +2,77 @@
 
 var enums = module.exports
 
-enums.values = function(group) {
-  return Object.keys(group).map(function(key) {
+enums.values = function (group) {
+  return Object.keys(group).map(function (key) {
     return enums[group][key] || enums[group][key.toString()]
   })
 }
 
+enums.getInterface = function (iface, errorIfNotFound) {
+  errorIfNotFound = (errorIfNotFound === undefined || errorIfNotFound === true)
+  if(errorIfNotFound) throw new Error('Interface ' + iface + ' not mapped')
+  return enums.interfaces[iface] || iface
+}
+
+enums.getPath = function (path, errorIfNotFound) {
+  errorIfNotFound = (errorIfNotFound === undefined || errorIfNotFound === true)
+  if(errorIfNotFound) throw new Error('Path ' + path + ' not mapped')
+  return enums.paths[path] || path
+}
+
+
+enums.paths = {
+  'NetworkManager': '/org/freedesktop/NetworkManager',
+  'AgentManager': '/org/freedesktop/NetworkManager/AgentManager',
+  'Settings': '/org/freedesktop/NetworkManager/Settings',
+}
+
+enums.interfaces = {
+  'NetworkManager': 'org.freedesktop.NetworkManager',
+  'AccessPoint': 'org.freedesktop.NetworkManager.AccessPoint',
+  'Device': 'org.freedesktop.NetworkManager.Device',
+  'DeviceAdsl': 'org.freedesktop.NetworkManager.Device.Adsl',
+  'DeviceBond': 'org.freedesktop.NetworkManager.Device.Bond',
+  'DeviceBridge': 'org.freedesktop.NetworkManager.Device.Bridge',
+  'DeviceBluetooth': 'org.freedesktop.NetworkManager.Device.Bluetooth',
+  'DeviceWired': 'org.freedesktop.NetworkManager.Device.Wired',
+  'DeviceGeneric': 'org.freedesktop.NetworkManager.Device.Generic',
+  'DeviceInfiniband': 'org.freedesktop.NetworkManager.Device.Infiniband',
+  'DeviceIPTunnel': 'org.freedesktop.NetworkManager.Device.IPTunnel',
+  'DeviceMacvlan': 'org.freedesktop.NetworkManager.Device.Macvlan',
+  'DeviceModem': 'org.freedesktop.NetworkManager.Device.Modem',
+  'DeviceOlpcMesh': 'org.freedesktop.NetworkManager.Device.OlpcMesh',
+  'DeviceTeam': 'org.freedesktop.NetworkManager.Device.Team',
+  'DeviceTun': 'org.freedesktop.NetworkManager.Device.Tun',
+  'DeviceVeth': 'org.freedesktop.NetworkManager.Device.Veth',
+  'DeviceVlan': 'org.freedesktop.NetworkManager.Device.Vlan',
+  'DeviceVxlan': 'org.freedesktop.NetworkManager.Device.Vxlan',
+  'DeviceWireless': 'org.freedesktop.NetworkManager.Device.Wireless',
+  'DeviceWiMax': 'org.freedesktop.NetworkManager.Device.WiMax',
+  'WiMaxNsp': 'org.freedesktop.NetworkManager.WiMax.Nsp',
+  'IP4Config': 'org.freedesktop.NetworkManager.IP4Config',
+  'IP6Config': 'org.freedesktop.NetworkManager.IP6Config',
+  'DHCP4Config': 'org.freedesktop.NetworkManager.DHCP4Config',
+  'DHCP6Config': 'org.freedesktop.NetworkManager.DHCP6Config',
+  'Settings': 'org.freedesktop.NetworkManager.Settings',
+  'SettingsConnection': 'org.freedesktop.NetworkManager.Settings.Connection',
+  'ConnectionActive': 'org.freedesktop.NetworkManager.Connection.Active',
+  'AgentManager': 'org.freedesktop.NetworkManager.AgentManager',
+  'SecretAgent': 'org.freedesktop.NetworkManager.SecretAgent',
+  'VPNConnection': 'org.freedesktop.NetworkManager.VPN.Connection',
+  'VPNPlugin': 'org.freedesktop.NetworkManager.VPN.Plugin',
+}
+
 var mapping = {
   'org.freedesktop.NetworkManager': {
-    Metered:      'NM_METERED',
+    Metered: 'NM_METERED',
     Connectivity: 'NM_CONNECTIVITY',
   },
   'org.freedesktop.NetworkManager.AccessPoint': {
-    Flags:      'NM_802_11_AP_FLAGS',
-    WpaFlags:   'NM_802_11_AP_SEC',
-    RsnFlags:   'NM_802_11_AP_SEC',
-    Mode:       'NM_802_11_MODE',
+    Flags: 'NM_802_11_AP_FLAGS',
+    WpaFlags: 'NM_802_11_AP_SEC',
+    RsnFlags: 'NM_802_11_AP_SEC',
+    Mode: 'NM_802_11_MODE',
   },
   'org.freedesktop.NetworkManager.Device': {
     Capabilities: 'NM_DEVICE_CAP',
@@ -53,41 +108,6 @@ var mapping = {
 
 enums.mapping = mapping
 
-enums.interfaces = {
-  'NetworkManager':       'org.freedesktop.NetworkManager',
-  'AccessPoint':          'org.freedesktop.NetworkManager.AccessPoint',
-  'Device':               'org.freedesktop.NetworkManager.Device',
-  'DeviceAdsl':           'org.freedesktop.NetworkManager.Device.Adsl',
-  'DeviceBond':           'org.freedesktop.NetworkManager.Device.Bond',
-  'DeviceBridge':         'org.freedesktop.NetworkManager.Device.Bridge',
-  'DeviceBluetooth':      'org.freedesktop.NetworkManager.Device.Bluetooth',
-  'DeviceWired':          'org.freedesktop.NetworkManager.Device.Wired',
-  'DeviceGeneric':        'org.freedesktop.NetworkManager.Device.Generic',
-  'DeviceInfiniband':     'org.freedesktop.NetworkManager.Device.Infiniband',
-  'DeviceIPTunnel':       'org.freedesktop.NetworkManager.Device.IPTunnel',
-  'DeviceMacvlan':        'org.freedesktop.NetworkManager.Device.Macvlan',
-  'DeviceModem':          'org.freedesktop.NetworkManager.Device.Modem',
-  'DeviceOlpcMesh':       'org.freedesktop.NetworkManager.Device.OlpcMesh',
-  'DeviceTeam':           'org.freedesktop.NetworkManager.Device.Team',
-  'DeviceTun':            'org.freedesktop.NetworkManager.Device.Tun',
-  'DeviceVeth':           'org.freedesktop.NetworkManager.Device.Veth',
-  'DeviceVlan':           'org.freedesktop.NetworkManager.Device.Vlan',
-  'DeviceVxlan':          'org.freedesktop.NetworkManager.Device.Vxlan',
-  'DeviceWireless':       'org.freedesktop.NetworkManager.Device.Wireless',
-  'DeviceWiMax':          'org.freedesktop.NetworkManager.Device.WiMax',
-  'WiMaxNsp':             'org.freedesktop.NetworkManager.WiMax.Nsp',
-  'IP4Config':            'org.freedesktop.NetworkManager.IP4Config',
-  'IP6Config':            'org.freedesktop.NetworkManager.IP6Config',
-  'DHCP4Config':          'org.freedesktop.NetworkManager.DHCP4Config',
-  'DHCP6Config':          'org.freedesktop.NetworkManager.DHCP6Config',
-  'Settings':             'org.freedesktop.NetworkManager.Settings',
-  'SettingsConnection':   'org.freedesktop.NetworkManager.Settings.Connection',
-  'ConnectionActive':     'org.freedesktop.NetworkManager.Connection.Active',
-  'AgentManager':         'org.freedesktop.NetworkManager.AgentManager',
-  'SecretAgent':          'org.freedesktop.NetworkManager.SecretAgent',
-  'VPNConnection':        'org.freedesktop.NetworkManager.VPN.Connection',
-  'VPNPlugin':            'org.freedesktop.NetworkManager.VPN.Plugin',
-}
 
 enums.NM_STATE = {
   // Networking state is unknown.

@@ -4,60 +4,83 @@ var netman = require('../index')
 
 var cache = {}
 
-describe('NetworkManager', function() {
+describe('NetworkManager', function () {
 
   describe('create instance', function () {
 
     it('should return an instance of dbus NetworkManager', function (done) {
-      netman.getNetworkManager(function(err, networkManager) {
-        assert.equal( !err, true )
+      netman.getInterface('NetworkManager', 'NetworkManager', function (err, networkManager) {
+
+        err && console.error(err)
+        assert.equal(!err, true)
+
         cache.networkManager = networkManager
         done()
       })
     });
 
     it('should return all properties for the NetworkManager', function (done) {
-      netman.GetAllProperties(netman.enums.interfaces.NetworkManager, function(err, list) {
-        // console.dir(list)
+      netman.GetAllProperties('NetworkManager', function(err, list) {
+        console.dir(list)
+
+        err && console.error(err);
         assert.equal( !err, true )
+
         assert.equal( typeof list === 'object', true )
         done()
       })
     });
+
   });
-
-  describe('load device', function () {
-    it('should load all devices', function (done) {
-      netman.getDevices(function(err, devices) {
-        assert.equal( !err, true )
-        console.dir(devices)
-        done()
-      })
-    })
-    it('should load a device by object path', function (done) {
-
-      cache.networkManager.GetDevices(function(err, devices) {
-        // console.warn(networkManager);
-        assert.equal( !err, true )
-        assert.equal( devices.length > 0, true )
-
-        cache.devices = devices
-
-        var devPath = devices.pop()
-        netman.getDeviceByPath(devPath, function(err, device) {
-
-          assert.equal( !err, true )
-
-          netman.GetAllProperties(netman.enums.interfaces.Device, devPath, function(err, list) {
-            assert.equal( !err, true )
-            assert.equal( typeof list === 'object', true )
-            done()
-          })
-
-        })
-      })
-
-    });
-  });
+  //
+  // describe('load device', function () {
+  //   it('should load all devices', function (done) {
+  //     netman.getDevices(function(err, devices) {
+  //       assert.equal( !err, true )
+  //       // console.log(require('util').inspect(devices, { depth: null }));
+  //       done()
+  //     })
+  //   })
+  //   it('should load a device by object path', function (done) {
+  //
+  //     cache.networkManager.GetDevices(function(err, devices) {
+  //       // console.warn(networkManager);
+  //       assert.equal( !err, true )
+  //       assert.equal( devices.length > 0, true )
+  //
+  //       // cache.devices = devices
+  //
+  //       var devPath = devices.pop()
+  //       netman.getDeviceByPath(devPath, function(err, device) {
+  //
+  //         assert.equal( !err, true )
+  //         netman.GetAllProperties(netman.enums.interfaces.Device, devPath, function(err, list) {
+  //           assert.equal( !err, true )
+  //           assert.equal( typeof list === 'object', true )
+  //           cache.device = {
+  //             obj: device,
+  //             props: list,
+  //           }
+  //           done()
+  //         })
+  //
+  //       })
+  //     })
+  //
+  //   });
+  //
+  // });
+  //
+  // describe('load config', function () {
+  //   it('should load IP4Config configuration', function (done) {
+  //     netman.getByPath('IP4Config', cache.device.props.Ip4Config, function(err, res) {
+  //       netman.GetAllProperties('Device', devPath, function(err, list) {
+  //         assert.equal( !err, true )
+  //         console.log(require('util').inspect(res, { hidden: true, depth: null }));
+  //         done()
+  //       })
+  //     })
+  //   })
+  // })
 
 });
