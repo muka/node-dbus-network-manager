@@ -1,12 +1,13 @@
 
 var dbus = require('dbus-native');
+
 var enums = require('./enums')
+exports.enums = enums
 
 var dbusInterfaces = {
-  'DBusProperties': 'org.freedesktop.DBus.Properties'
+  'DBusProperties': 'org.freedesktop.DBus.Properties',
+  'DBusObjectManager': 'org.freedesktop.DBus.ObjectManager',
 }
-
-exports.enums = enums
 
 var networkManagerPath = "/org/freedesktop/NetworkManager"
 exports.path = networkManagerPath

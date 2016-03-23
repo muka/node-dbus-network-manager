@@ -23,5 +23,8 @@
   "bugs": {
     "url": "https://github.com/muka/node-dbus-network-manager/issues"
   },
-  "homepage": "https://github.com/muka/node-dbus-network-manager#readme"
+  "homepage": "https://github.com/muka/node-dbus-network-manager#readme",
+  "dependencies": {
+    "dbus-native": "^0.2.0"
+  }
 }
