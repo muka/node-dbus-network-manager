@@ -1,4 +1,4 @@
 
-module.exports = function(networkManager) {
-  
-}
+var nm = require('../index')
+
+module.exports = function(networkManager) {}

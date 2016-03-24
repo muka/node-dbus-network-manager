@@ -20,7 +20,6 @@ enums.getPath = function (path, errorIfNotFound) {
   return enums.paths[path] || path
 }
 
-
 enums.paths = {
   'NetworkManager': '/org/freedesktop/NetworkManager',
   'AgentManager': '/org/freedesktop/NetworkManager/AgentManager',
@@ -28,6 +27,11 @@ enums.paths = {
 }
 
 enums.interfaces = {
+
+  'Introspectable': 'org.freedesktop.DBus.Introspectable',
+  'Properties': 'org.freedesktop.DBus.Properties',
+  'ObjectManager': 'org.freedesktop.DBus.ObjectManager',
+
   'NetworkManager': 'org.freedesktop.NetworkManager',
   'AccessPoint': 'org.freedesktop.NetworkManager.AccessPoint',
   'Device': 'org.freedesktop.NetworkManager.Device',
@@ -107,6 +111,37 @@ var mapping = {
 }
 
 enums.mapping = mapping
+
+enums.labels = {
+  NM_STATE: {
+    NM_DEVICE_STATE_UNKNOWN: 'Unknown',
+    NM_DEVICE_STATE_UNMANAGED: 'Unmanaged',
+    NM_DEVICE_STATE_UNAVAILABLE: 'Unavailable',
+    NM_DEVICE_STATE_DISCONNECTED: 'Disconnected',
+    NM_DEVICE_STATE_PREPARE: 'Connecting',
+    NM_DEVICE_STATE_CONFIG: 'Configuring',
+    NM_DEVICE_STATE_NEED_AUTH: 'Need authentication',
+    NM_DEVICE_STATE_IP_CONFIG: 'Configuring',
+    NM_DEVICE_STATE_IP_CHECK: 'Checking connectivity',
+    NM_DEVICE_STATE_SECONDARIES: 'Waiting for secondary connections',
+    NM_DEVICE_STATE_ACTIVATED: 'Active',
+    NM_DEVICE_STATE_DEACTIVATING: 'Deactivating',
+    NM_DEVICE_STATE_FAILED: 'Failed to activate',
+  },
+  NM_DEVICE_TYPE: {
+    'NM_DEVICE_TYPE_UNKNOWN': 'Unknown',
+    'NM_DEVICE_TYPE_ETHERNET': 'Ethernet',
+    'NM_DEVICE_TYPE_WIFI': 'Wifi',
+    'NM_DEVICE_TYPE_BT': 'Bluetooth',
+    'NM_DEVICE_TYPE_WIMAX': 'WiMax',
+    'NM_DEVICE_TYPE_MODEM': 'Modem',
+    'NM_DEVICE_TYPE_BOND': 'Bond',
+    'NM_DEVICE_TYPE_VLAN': 'VLAN',
+    'NM_DEVICE_TYPE_ADSL': 'ADSL',
+    'NM_DEVICE_TYPE_BRIDGE': 'Bridge',
+  }
+
+}
 
 
 enums.NM_STATE = {
