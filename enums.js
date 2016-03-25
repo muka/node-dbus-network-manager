@@ -69,8 +69,21 @@ enums.interfaces = {
 
 var mapping = {
   'org.freedesktop.NetworkManager': {
-    Metered: 'NM_METERED',
-    Connectivity: 'NM_CONNECTIVITY',
+    Metered: {
+      property: 'NM_METERED',
+    },
+    Connectivity: {
+      property: 'NM_CONNECTIVITY',
+    },
+    Devices: {
+      iface: enums.interfaces.Device,
+    },
+    ActiveConnections: {
+      iface: enums.interfaces.ConnectionActive,
+    },
+    PrimaryConnection: {
+      iface: enums.interfaces.ConnectionActive,
+    }
   },
   'org.freedesktop.NetworkManager.AccessPoint': {
     Flags: 'NM_802_11_AP_FLAGS',
@@ -84,6 +97,24 @@ var mapping = {
     StateReason: 'NM_DEVICE_STATE_REASON_STRUCT',
     DeviceType: 'NM_DEVICE_TYPE',
     Metered: 'NM_METERED',
+    Ip4Config: {
+      iface: enums.interfaces.IP4Config,
+    },
+    Ip6Config: {
+      iface: enums.interfaces.IP6Config,
+    },
+    Dhcp4Config: {
+      iface: enums.interfaces.Dhcp4Config,
+    },
+    Dhcp6Config: {
+      iface: enums.interfaces.Dhcp6Config,
+    },
+    ActiveConnection: {
+      iface: enums.interfaces.ConnectionActive,
+    },
+    AvailableConnections: {
+      iface: enums.interfaces.SettingsConnection,
+    },
   },
   'org.freedesktop.NetworkManager.Device.Bluetooth': {
     BtCapabilities: 'NM_BT_CAPABILITIES',
@@ -101,13 +132,43 @@ var mapping = {
   },
   'org.freedesktop.NetworkManager.Connection.Active': {
     State: 'NM_ACTIVE_CONNECTION_STATE',
+    Connection: {
+      iface: enums.interfaces.SettingsConnection,
+    },
+    Devices: {
+      iface: enums.interfaces.Device,
+    },
+    Ip4Config: {
+      iface: enums.interfaces.IP4Config,
+    },
+    Ip6Config: {
+      iface: enums.interfaces.IP6Config,
+    },
+    Dhcp4Config: {
+      iface: enums.interfaces.Dhcp4Config,
+    },
+    Dhcp6Config: {
+      iface: enums.interfaces.Dhcp6Config,
+    },
   },
   'org.freedesktop.NetworkManager.VPN.Connection': {
     VpnState: 'NM_VPN_CONNECTION_STATE',
   },
   'org.freedesktop.NetworkManager.VPN.Plugin': {
     State: 'NM_VPN_SERVICE_STATE',
-  }
+  },
+  'org.freedesktop.NetworkManager.IP4Config': {
+    Addresses: toIP,
+    AddressData: toIP,
+  },
+  'org.freedesktop.NetworkManager.IP6Config': {
+    Addresses: toIP,
+    AddressData: toIP,
+  },
+}
+
+var toIP = function(values) {
+  return values
 }
 
 enums.mapping = mapping

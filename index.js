@@ -2,6 +2,7 @@ var dbus = require('dbus-native');
 
 var nm = exports
 
+var util = require('./lib/util')
 var enums = require('./enums')
 nm.enums = enums
 
@@ -16,18 +17,6 @@ nm.plugins = {
 nm.interfaces = enums.interfaces
 nm.paths = enums.paths
 
-var createError = function (err) {
-  if(err instanceof Error) {
-    return err;
-  }
-  if(err === null || err === undefined) {
-    return null;
-  }
-  err = err instanceof Array && err.length === 1 ? err[0] : err;
-  return new Error(err);
-}
-nm.createError = createError
-
 // conn cache
 var clients = {
   session: null,
@@ -40,27 +29,6 @@ var clients = {
 nm.getService = function (iface) {
   clients.system = clients.system || dbus.systemBus();
   return clients.system.getService(iface || nm.interfaces.NetworkManager);
-}
-
-var _plugins = null;
-var applyPlugin = function (path, obj) {
-
-  if(_plugins === null) {
-    _plugins = [];
-    Object.keys(nm.plugins).map(function (matchpath) {
-      _plugins.push({
-        regexp: new RegExp(matchpath.replace(/\//g, '.').replace(/\*/g, '.*'), 'i'),
-        handler: nm.plugins[matchpath],
-      });
-    })
-  }
-
-  _plugins.forEach(function (plugin) {
-    if(path.match(plugin.regexp)) {
-      plugin.handler(obj)
-    }
-  })
-
 }
 
 /**
@@ -79,17 +47,13 @@ nm.getObject = function (path, service, fn) {
     .getObject(path, function (err, obj) {
 
       // apply plugin by path
-      applyPlugin(path, obj)
+      util.applyPlugin(path, obj)
 
-      var _as = obj.as.bind(obj)
-      obj.as = function(iface) {
-        // apply plugin by interface
-        var proxy = _as(iface)
-        applyPlugin(iface, proxy)
-        return proxy
-      }
+      Object.keys(obj.proxy).forEach(function(iface) {
+        util.applyPlugin(iface, obj.as(iface), obj)
+      })
 
-      fn(createError(err), obj)
+      fn(util.createError(err), obj)
     })
 
 }

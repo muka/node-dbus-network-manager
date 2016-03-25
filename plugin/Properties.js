@@ -1,13 +1,30 @@
 
-module.exports = function (properties) {
+module.exports = function (properties, obj) {
+
+  obj.properties = null
+  obj.getProperties = function(iface, fn, refresh) {
+    if(!refresh && obj.properties !== null) {
+      fn(null, obj.properties)
+      return
+    }
+    properties.GetAll(iface, function(err, props) {
+      if(props) {
+        obj.properties = props
+      }
+      fn(err, props)
+    })
+  }
 
   var GetAll = properties.GetAll
-  properties.GetAll = function (propIface, fn) {
-    GetAll(propIface, function (err, list) {
+  properties.GetAll = function (iface, fn) {
+    if(!iface || typeof iface !== 'string') {
+      throw new Error("Properties.GetAll requires an interface")
+    }
+    GetAll(iface, function (err, list) {
       if(err) {
         return fn(err)
       }
-      fn(null, mapProperties(list, propIface))
+      fn(null, mapProperties(list, iface))
     })
   }
 
@@ -33,13 +50,22 @@ var mapProperties = function (list, propIface) {
 
     var ref = enums.mapping[propIface] && enums.mapping[propIface][key] ? enums.mapping[propIface][key] : false
 
-    if(ref && enums[ref]) {
+    if(ref) {
+      ref = ref.property || ref.handler || ref
+    }
+
+    var isfn = typeof ref === 'function'
+
+    if(ref && (enums[ref] || isfn)) {
 
       var applyValue = function (val) {
-        if(typeof enums[ref][val] === 'function') {
-          return enums[ref][val](val)
+        if(isfn) {
+          return ref(val)
         }
-        return enums[ref][val] || enums[ref][val.toString()]
+        if(enums[ref][val]) {
+          return enums[ref][val] || enums[ref][val.toString()]
+        }
+        return val
       }
 
       if(val instanceof Array) {
@@ -48,10 +74,8 @@ var mapProperties = function (list, propIface) {
           return applyValue(ival)
         })
       } else {
-        if(enums[ref][val]) {
-          addRawValue = true
-          val = applyValue(val)
-        }
+        addRawValue = true
+        val = applyValue(val)
       }
     }
 
