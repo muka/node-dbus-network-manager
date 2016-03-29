@@ -67,6 +67,34 @@ enums.interfaces = {
   'VPNPlugin': 'org.freedesktop.NetworkManager.VPN.Plugin',
 }
 
+var addressToIPv4 = function(values) {
+    var converter = require('./lib/converter');
+    // console.warn(values, '*****************************');
+    // console.warn(converter.AddressTupleToIPBlock(values));
+    return converter.AddressTupleToIPBlock(values)
+}
+var addressDataToIPv4 = function(values) {
+    var converter = require('./lib/converter');
+    // console.log(require('util').inspect(values, { depth: null }));
+    // console.warn(converter.AddressTupleToIPBlock(values));
+    var data = {}
+    data.bitmask = values[0][1][1][0]
+    data.address = values[1][1][1][0]
+    // console.warn(data);
+    return data
+}
+var addressToIPv6 = function(values) {
+    var converter = require('./lib/converter');
+    // console.warn(values, '*****************************');
+    // console.warn(converter.AddressTupleToIPv6Block(values));
+    return converter.AddressTupleToIPv6Block(values)
+}
+var addressDataToIPv6 = function(values) {
+    var converter = require('./lib/converter');
+    // console.log(require('util').inspect(values, { depth: null }));
+    return addressDataToIPv4(values)
+}
+
 var mapping = {
   'org.freedesktop.NetworkManager': {
     Metered: {
@@ -158,18 +186,15 @@ var mapping = {
     State: 'NM_VPN_SERVICE_STATE',
   },
   'org.freedesktop.NetworkManager.IP4Config': {
-    Addresses: toIP,
-    AddressData: toIP,
+    Addresses: addressToIPv4,
+    AddressData: addressDataToIPv4,
   },
   'org.freedesktop.NetworkManager.IP6Config': {
-    Addresses: toIP,
-    AddressData: toIP,
+    Addresses: addressToIPv6,
+    AddressData: addressDataToIPv6,
   },
 }
 
-var toIP = function(values) {
-  return values
-}
 
 enums.mapping = mapping
 

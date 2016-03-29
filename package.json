@@ -25,7 +25,8 @@
   },
   "homepage": "https://github.com/muka/node-dbus-network-manager#readme",
   "dependencies": {
-    "dbus-native": "github:sidorares/node-dbus"
+    "dbus-native": "github:sidorares/node-dbus",
+    "netmask": "^1.0.5"
   },
   "devDependencies": {
     "mocha": "^2.4.5"

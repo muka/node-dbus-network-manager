@@ -16,11 +16,13 @@ module.exports = function (networkManager) {
         var done = fn;
         if(loadProperties) {
           done = function (err, connections) {
+
             if(err) return fn(util.createError(err))
             util.GetAllProperties(
               nm.interfaces.ConnectionActive,
               connections,
-              fn, (loadProperties > 0 ? loadProperties : 0))
+              fn,
+              loadProperties)
           }
         }
         util.getObjects(connectionsPath, done)
@@ -34,7 +36,9 @@ module.exports = function (networkManager) {
     loadProperties = (loadProperties === undefined) ? false : loadProperties
     networkManager.as(nm.interfaces.NetworkManager)
       .GetDevices(function (err, devicesPath) {
-        if(err) return fn(util.createError(err))
+        if(err) {
+          return fn(util.createError(err))
+        }
         var done = fn;
         if(loadProperties) {
           done = function (err, devices) {
@@ -42,7 +46,7 @@ module.exports = function (networkManager) {
             util.GetAllProperties(
               nm.interfaces.Device,
               devices,
-              fn, (loadProperties > 0 ? loadProperties : 0))
+              fn, loadProperties)
           }
         }
         util.getObjects(devicesPath, done)

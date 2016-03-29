@@ -1,31 +1,38 @@
 
+var cache = require('../lib/cache')
+
 module.exports = function (properties, obj) {
 
-  obj.properties = null
-  obj.getProperties = function(iface, fn, refresh) {
-    if(!refresh && obj.properties !== null) {
-      fn(null, obj.properties)
-      return
-    }
-    properties.GetAll(iface, function(err, props) {
-      if(props) {
-        obj.properties = props
-      }
-      fn(err, props)
-    })
-  }
+  obj.properties = cache.add(obj.name)
 
   var GetAll = properties.GetAll
-  properties.GetAll = function (iface, fn) {
+  properties.GetAll = function (iface, fn, refresh) {
+
     if(!iface || typeof iface !== 'string') {
-      throw new Error("Properties.GetAll requires an interface")
+      return fn(new Error("Properties.GetAll requires an interface"))
     }
+
+    var _c = obj.properties.get(iface)
+    if(!refresh && _c) {
+      return fn(null, _c)
+    }
+
     GetAll(iface, function (err, list) {
       if(err) {
         return fn(err)
       }
-      fn(null, mapProperties(list, iface))
+      obj.properties.set(iface, mapProperties(list, iface))
+      fn(null, obj.properties.get(iface))
     })
+  }
+
+  obj.getProperties = function(iface, fn, depth, refresh) {
+    require('../lib/util').GetAllProperties(iface, obj, function(err, props) {
+      if(err) {
+        return fn(err[0])
+      }
+      fn(null, props[0])
+    }, depth === undefined ? 0 : depth, refresh === undefined ? false : refresh)
   }
 
 }
