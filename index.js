@@ -33,33 +33,33 @@ nm.getService = function (iface) {
 
 /**
  * returns a proxy object
- * use obj.as(iface) to get the peratining interface
+ * use obj.as(iface) to get the pertaining interface
  */
-nm.getObject = function (path, service, fn) {
+nm.getObject = function (path, service) {
+  return new Promise(function(resolve, reject) {
 
-  if(typeof service === 'function') {
-    fn = service
-    service = null
-  }
+    nm
+      .getService(service)
+      .getObject(path, function (err, obj) {
 
-  nm
-    .getService(service)
-    .getObject(path, function (err, obj) {
+        if(err) {
+          return reject(util.createError(err))
+        }
 
-      // apply plugin by path
-      util.applyPlugin(path, obj)
+        // apply plugin by path
+        util.applyPlugin(path, obj)
 
-      if(obj && obj.proxy) {
-        Object.keys(obj.proxy).forEach(function(iface) {
-          util.applyPlugin(iface, obj.as(iface), obj)
-        })
-      }
+        if(obj && obj.proxy) {
+          Object.keys(obj.proxy).forEach(function(iface) {
+            util.applyPlugin(iface, obj.as(iface), obj)
+          })
+        }
 
-      fn(util.createError(err), obj)
-    })
-
+        resolve(obj)
+      })
+  });
 }
 
-nm.getNetworkManager = function (then) {
-  nm.getObject(nm.paths.NetworkManager, then)
+nm.getNetworkManager = function () {
+  return nm.getObject(nm.paths.NetworkManager)
 }

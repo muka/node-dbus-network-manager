@@ -8,31 +8,19 @@ describe('NetworkManager', function () {
 
   describe('create instance', function () {
 
-    it('should return an instance of dbus NetworkManager', function (done) {
-      nm.getNetworkManager(function (err, networkManager) {
-        assert.equal(!err, true)
-        cache.networkManager = networkManager
-        done()
-      })
+    it('should return an instance of dbus NetworkManager', function () {
+      return nm.getNetworkManager()
     })
 
-      it('should return all properties for the NetworkManager', function (done) {
-        cache.networkManager
-          .as(nm.interfaces.Properties)
-          .GetAll(nm.interfaces.NetworkManager, function (err, list) {
+    it('should return all properties for the NetworkManager', function () {
+      return nm.getNetworkManager().then(function (networkManager) {
+        return networkManager.getOverview()
+      })
+    });
 
-            err && console.error(err);
-            assert.equal(!err, true)
-
-            assert.equal(typeof list === 'object', true)
-            cache.networkManager.properties = list
-
-            done()
-          })
-      });
-
-      it('should list available connections', function (done) {
-        cache.networkManager
+    it('should list available connections', function () {
+      return nm.getNetworkManager().then(function (networkManager) {
+        networkManager
           .as(nm.interfaces.NetworkManager)
           .ActiveConnections(function (err, conns) {
 
@@ -62,18 +50,15 @@ describe('NetworkManager', function () {
 
 
           })
-      });
+      })
+    });
 
   });
 
   describe('Device interface', function () {
 
     it('should load all devices', function (done) {
-      cache.networkManager.getDevices(function (err, devices) {
-
-        err && console.error(err)
-        assert.equal(!err, true)
-
+      cache.networkManager.getDevices().then(function () {
         cache.devices = devices
         done()
       })
@@ -102,11 +87,11 @@ describe('NetworkManager', function () {
 
     it('should load all active connections', function (done) {
 
-      cache.networkManager.getActiveConnections(function(err, connections) {
+      cache.networkManager.getActiveConnections(function (err, connections) {
         // console.log(require('util').inspect(err, { depth: null }));
         assert.equal(!err, true)
         assert.equal(connections instanceof Array, true)
-        // console.log(require('util').inspect(connections, { depth: null }));
+          // console.log(require('util').inspect(connections, { depth: null }));
         done()
       }, true)
     });

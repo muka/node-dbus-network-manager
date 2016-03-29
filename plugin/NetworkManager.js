@@ -1,58 +1,52 @@
 var nm = require('../index')
 var util = require('../lib/util')
+var Promise = require('bluebird')
 
 module.exports = function (networkManager) {
 
   /**
    * Return a list of active connections
-   * @params fn callback(err, props)
-   * @params loadProperties true|false or int for deep loading
    */
-  networkManager.getActiveConnections = function (fn, loadProperties) {
-    loadProperties = (loadProperties === undefined) ? false : loadProperties
-    networkManager.as(nm.interfaces.NetworkManager)
-      .ActiveConnections(function (err, connectionsPath) {
-        if(err) return fn(util.createError(err))
-        if(loadProperties) {
-          fn = function (err, connections) {
-            if(err) return fn(util.createError(err))
-            util.GetAllProperties(
-              nm.interfaces.ConnectionActive,
-              connections,
-              function(err, props) {
-                !err && connections.forEach(function(c, i) {
-                  c.properties = props[i]
-                })
-                fn(err, props)
-              },
-              loadProperties)
+  networkManager.getActiveConnections = function () {
+    return new Promise(function(resolve, reject) {
+      networkManager.as(nm.interfaces.NetworkManager)
+        .ActiveConnections(function (err, connectionsPath) {
+          if(err) {
+            return reject(util.createError(err))
           }
-        }
-        util.getObjects(connectionsPath, fn)
-      })
+          return util.getObjects(connectionsPath)
+        })
+    })
   }
 
   /**
    * Return a list of devices
    */
-  networkManager.getDevices = function (fn, loadProperties) {
-    loadProperties = (loadProperties === undefined) ? false : loadProperties
-    networkManager.as(nm.interfaces.NetworkManager)
-      .GetDevices(function (err, devicesPath) {
-        if(err) {
-          return fn(util.createError(err))
-        }
-        if(loadProperties) {
-          fn = function (err, devices) {
-            if(err) return fn(util.createError(err))
-            util.GetAllProperties(
-              nm.interfaces.Device,
-              devices,
-              fn, loadProperties)
+  networkManager.getDevices = function () {
+    return new Promise(function(resolve, reject) {
+      networkManager.as(nm.interfaces.NetworkManager)
+        .GetDevices(function (err, devicesPath) {
+          if(err) {
+            return reject(util.createError(err))
           }
-        }
-        util.getObjects(devicesPath, fn)
-      })
+          return util.getObjects(devicesPath)
+        })
+    });
+  }
+
+  /**
+   * Return an overview of the networkManager status
+   */
+  networkManager.getOverview = function () {
+    return new Promise(function(resolve, reject) {
+      networkManager.as(nm.interfaces.Properties)
+        .GetAll(function (err, props) {
+          if(err) {
+            return reject(util.createError(err))
+          }
+          resolve(props)
+        })
+    });
   }
 
 }
