@@ -44,7 +44,8 @@ module.exports = function (properties, obj) {
 
       }, onComplete)
   }
-
+  properties.loadProperties = loadProperties
+  
   obj.getProperties = function(iface, onComplete, depth, refresh) {
 
     depth = depth === undefined ? 0 : depth;
