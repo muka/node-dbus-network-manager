@@ -1,9 +1,10 @@
 
 var cache = require('../lib/cache')
+var nm = require('../index')
 
 module.exports = function (properties, obj) {
 
-  obj.properties = cache.add(obj.name)
+  var properties = cache.add(obj.name)
 
   var GetAll = properties.GetAll
   properties.GetAll = function (iface, fn, refresh) {
@@ -12,7 +13,7 @@ module.exports = function (properties, obj) {
       return fn(new Error("Properties.GetAll requires an interface"))
     }
 
-    var _c = obj.properties.get(iface)
+    var _c = properties.get(iface)
     if(!refresh && _c) {
       return fn(null, _c)
     }
@@ -21,18 +22,88 @@ module.exports = function (properties, obj) {
       if(err) {
         return fn(err)
       }
-      obj.properties.set(iface, mapProperties(list, iface))
-      fn(null, obj.properties.get(iface))
+      properties.set(iface, mapProperties(list, iface))
+      fn(null, properties.get(iface))
     })
   }
 
-  obj.getProperties = function(iface, fn, depth, refresh) {
-    require('../lib/util').GetAllProperties(iface, obj, function(err, props) {
+  obj.getProperties = function(iface, onComplete, depth, refresh) {
+
+    depth = depth === undefined ? 0 : depth;
+    depth = depth === true ? 1 : depth === false ? 0 : depth
+    depth = parseInt(depth) === NaN ? 0 : depth
+
+    properties.GetAll(iface, function(err, props) {
+
       if(err) {
-        return fn(err[0])
+        return onComplete(err)
       }
-      fn(null, props[0])
-    }, depth === undefined ? 0 : depth, refresh === undefined ? false : refresh)
+
+      if(depth === 0) {
+        return onComplete(null, props)
+      }
+
+      var mappedProps = Object.keys(props).filter(function (key) {
+        return nm.enums.mapping[iface] &&
+          nm.enums.mapping[iface][key] &&
+          nm.enums.mapping[iface][key].iface
+      })
+
+      if(!mappedProps.length) {
+        onComplete(err, props)
+      }
+
+      util.listRun(mappedProps, function (key, nextProperty) {
+
+        var val = props[key];
+        var _isarray = val instanceof Array;
+        var paths = _isarray ? val : [val];
+
+        var ref = nm.enums.mapping[iface][key];
+
+        if(val === null) {
+          console.warn(props, key, ';;;;;;;;;;;;;;;');
+          return nextProperty();
+        }
+
+        if(!paths.length) {
+          return nextProperty();
+        }
+
+        util.getObjects(paths, function (err1, childObjs) {
+
+            if(err1) {
+              return nextProperty(err1)
+            }
+
+            util.GetAllProperties(ref.iface, childObjs, function (err) {
+
+              if(err) {
+                return nextProperty(err)
+              }
+
+              var objProps = obj.properties.get(iface)
+              console.warn(objProps);
+              // if(childObjs && childObjs.length) {
+              //   var _propsobj = childObjs.map(function (o) {
+              //     console.warn(p.properties.get(ref.iface));
+              //     return o.properties.get(ref.iface)
+              //   })
+              //   console.warn(_propsobj);
+              //   objProps[key] = _isarray ? _propsobj : _propsobj[0]
+              // }
+              // obj.properties.set(iface, objProps)
+
+              nextProperty()
+            }, (depth - 1), refresh)
+
+          }) //getObjects
+
+      }, function (err, list) {
+        onComplete(err, obj)
+      })
+
+    }, refresh)
   }
 
 }

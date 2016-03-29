@@ -49,9 +49,11 @@ nm.getObject = function (path, service, fn) {
       // apply plugin by path
       util.applyPlugin(path, obj)
 
-      Object.keys(obj.proxy).forEach(function(iface) {
-        util.applyPlugin(iface, obj.as(iface), obj)
-      })
+      if(obj && obj.proxy) {
+        Object.keys(obj.proxy).forEach(function(iface) {
+          util.applyPlugin(iface, obj.as(iface), obj)
+        })
+      }
 
       fn(util.createError(err), obj)
     })
