@@ -19,7 +19,12 @@ module.exports = function (networkManager) {
             util.GetAllProperties(
               nm.interfaces.ConnectionActive,
               connections,
-              fn,
+              function(err, props) {
+                !err && connections.forEach(function(c, i) {
+                  c.properties = props[i]
+                })
+                fn(err, props)
+              },
               loadProperties)
           }
         }

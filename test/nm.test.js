@@ -101,6 +101,7 @@ describe('NetworkManager', function () {
     });
 
     it('should load all active connections', function (done) {
+
       cache.networkManager.getActiveConnections(function(err, connections) {
         // console.log(require('util').inspect(err, { depth: null }));
         assert.equal(!err, true)

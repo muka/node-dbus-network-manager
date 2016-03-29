@@ -1,10 +1,11 @@
 
 var cache = require('../lib/cache')
+var util = require('../lib/util')
 var nm = require('../index')
 
 module.exports = function (properties, obj) {
 
-  var properties = cache.add(obj.name)
+  var propsCache = cache.add(obj.name)
 
   var GetAll = properties.GetAll
   properties.GetAll = function (iface, fn, refresh) {
@@ -13,7 +14,7 @@ module.exports = function (properties, obj) {
       return fn(new Error("Properties.GetAll requires an interface"))
     }
 
-    var _c = properties.get(iface)
+    var _c = propsCache.get(iface)
     if(!refresh && _c) {
       return fn(null, _c)
     }
@@ -22,9 +23,26 @@ module.exports = function (properties, obj) {
       if(err) {
         return fn(err)
       }
-      properties.set(iface, mapProperties(list, iface))
-      fn(null, properties.get(iface))
+      propsCache.set(iface, mapProperties(list, iface))
+      fn(null, propsCache.get(iface))
     })
+  }
+
+  var loadProperties = function(iface, objs, onComplete, depth, refresh) {
+
+      if(!(objs instanceof Array)) {
+        return loadProperties(iface, [objs], onComplete, depth, refresh)
+      }
+
+      util.listRun(objs, function (subobj, nextObj) {
+
+        if(!subobj.as(nm.interfaces.Properties)) {
+          return nextObj(null, {})
+        }
+
+        subobj.getProperties(iface, nextObj, depth, refresh)
+
+      }, onComplete)
   }
 
   obj.getProperties = function(iface, onComplete, depth, refresh) {
@@ -33,7 +51,9 @@ module.exports = function (properties, obj) {
     depth = depth === true ? 1 : depth === false ? 0 : depth
     depth = parseInt(depth) === NaN ? 0 : depth
 
-    properties.GetAll(iface, function(err, props) {
+    properties.GetAll(iface, function(err, srcProps) {
+
+      var props = JSON.parse(JSON.stringify(srcProps));
 
       if(err) {
         return onComplete(err)
@@ -61,11 +81,6 @@ module.exports = function (properties, obj) {
 
         var ref = nm.enums.mapping[iface][key];
 
-        if(val === null) {
-          console.warn(props, key, ';;;;;;;;;;;;;;;');
-          return nextProperty();
-        }
-
         if(!paths.length) {
           return nextProperty();
         }
@@ -76,23 +91,17 @@ module.exports = function (properties, obj) {
               return nextProperty(err1)
             }
 
-            util.GetAllProperties(ref.iface, childObjs, function (err) {
+            loadProperties(ref.iface, childObjs, function (err, childProps) {
 
               if(err) {
                 return nextProperty(err)
               }
 
-              var objProps = obj.properties.get(iface)
-              console.warn(objProps);
-              // if(childObjs && childObjs.length) {
-              //   var _propsobj = childObjs.map(function (o) {
-              //     console.warn(p.properties.get(ref.iface));
-              //     return o.properties.get(ref.iface)
-              //   })
-              //   console.warn(_propsobj);
-              //   objProps[key] = _isarray ? _propsobj : _propsobj[0]
-              // }
-              // obj.properties.set(iface, objProps)
+              if(childProps) {
+                props[key] = _isarray ? childProps : childProps[0]
+                // console.warn(props, val, key, childProps);
+                // process.exit()
+              }
 
               nextProperty()
             }, (depth - 1), refresh)
@@ -100,7 +109,7 @@ module.exports = function (properties, obj) {
           }) //getObjects
 
       }, function (err, list) {
-        onComplete(err, obj)
+        onComplete(err, props)
       })
 
     }, refresh)
