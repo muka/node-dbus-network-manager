@@ -43,12 +43,7 @@ module.exports = function (networkManager) {
    * Return an overview of the networkManager status
    */
   networkManager.getOverview = function () {
-    return new Promise(function(resolve, reject) {
-      networkManager.as(nm.interfaces.Properties)
-        .GetAll(nm.interfaces.NetworkManager, function (err, props) {
-          err ? reject(util.createError(err)) : resolve(props)
-        })
-    });
+    return networkManager.getProperties(nm.interfaces.NetworkManager, 5)
   }
 
 }

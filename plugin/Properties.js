@@ -94,24 +94,6 @@ module.exports = function (properties, obj) {
     }, refresh)
   }
 
-  // var loadProperties = function(iface, objs, onComplete, depth, refresh) {
-  //
-  //     if(!(objs instanceof Array)) {
-  //       return loadProperties(iface, [objs], onComplete, depth, refresh)
-  //     }
-  //
-  //     util.listRun(objs, function (subobj, nextObj) {
-  //
-  //       if(!subobj.as(nm.interfaces.Properties)) {
-  //         return nextObj(null, {})
-  //       }
-  //
-  //       subobj.getProperties(iface, nextObj, depth, refresh)
-  //
-  //     }, onComplete)
-  // }
-  // properties.loadProperties = loadProperties
-  //
 }
 
 var mapProperties = function (list, propIface) {
@@ -121,7 +103,6 @@ var mapProperties = function (list, propIface) {
 
     var addRawValue = false
     var val = pgroup[1][1]
-
     var key = pgroup[0]
 
     if(val.length === 1) {
@@ -132,35 +113,42 @@ var mapProperties = function (list, propIface) {
     var srcval = (val instanceof Array || typeof val === 'object') ?
       JSON.parse(JSON.stringify(val)) : val
 
-    var ref = enums.mapping[propIface] && enums.mapping[propIface][key] ? enums.mapping[propIface][key] : false
-
-    if(ref) {
-      ref = ref.property || ref.handler || ref
-    }
-
-    var isfn = typeof ref === 'function'
-
-    if(ref && (enums[ref] || isfn)) {
+    var mapconf = enums.mapping[propIface] && enums.mapping[propIface][key] ? enums.mapping[propIface][key] : false
+    if(mapconf) {
 
       var applyValue = function (val) {
-        if(isfn) {
-          return ref(val)
-        }
-        if(enums[ref][val]) {
+
+        var ref = mapconf.property || mapconf
+        if(typeof ref === 'string' && enums[ref][val]) {
           return enums[ref][val] || enums[ref][val.toString()]
         }
+
+        ref = mapconf.handler || mapconf
+        if(typeof ref === 'function') {
+          return ref(val)
+        }
+
         return val
       }
 
-      if(val instanceof Array) {
+      val = (function(val) {
+
         addRawValue = true
-        val = val.map(function (ival) {
-          return applyValue(ival)
-        })
-      } else {
-        addRawValue = true
-        val = applyValue(val)
-      }
+
+        if(mapconf.mapper) {
+          return mapconf.mapper(val)
+        }
+
+        if(val instanceof Array) {
+          return val.map(function (ival) {
+            return applyValue(ival)
+          })
+        }
+
+        return applyValue(val)
+
+      })(val)
+
     }
 
     if(addRawValue) {

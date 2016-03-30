@@ -1,6 +1,8 @@
 var assert = require('assert');
 
 var nm = require('../index')
+var util = require('../lib/util')
+var Promise = nm.Promise
 
 var cache = {}
 
@@ -50,6 +52,35 @@ describe('NetworkManager', function () {
       return networkManager.getActiveConnections().each(function (connection) {
         return connection.getProperties(nm.interfaces.ConnectionActive, 3)
       })
+    })
+  });
+
+  it('should properly list DHCP4Config', function () {
+    return nm.getNetworkManager().then(function (networkManager) {
+      return networkManager.getOverview()
+        .then(function (overview) {
+          assert.equal(typeof overview.PrimaryConnection.Dhcp4Config.Options, 'object')
+        })
+    })
+  });
+
+  it('should list available connections', function () {
+    return nm.getNetworkManager().then(function (networkManager) {
+      return networkManager.getDevices()
+        .map(function (device) {
+          return device.getAvailableConnections()
+        })
+        .map(function (conns) {
+          if(!conns.length) {
+            return Promise.resolve([])
+          }
+          return Promise.all(conns).map(function (conn) {
+            return conn.getSettings()
+            // .then(function(c) {
+            //   console.log(require('util').inspect(c, { depth: null }));
+            // })
+          })
+        })
     })
   });
 

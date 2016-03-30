@@ -18,6 +18,7 @@ nm.plugins = {
   // path
   '/org/freedesktop/NetworkManager': require('./plugin/NetworkManager'),
   '/org/freedesktop/NetworkManager/Device/*': require('./plugin/Device'),
+  '/org/freedesktop/NetworkManager/Settings/*': require('./plugin/Settings'),
   // interface
   'org.freedesktop.DBus.Properties': require('./plugin/Properties'),
 }
