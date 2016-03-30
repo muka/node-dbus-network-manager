@@ -1,9 +1,12 @@
+
 var dbus = require('dbus-native');
+var Promise = require('bluebird');
+var cache = require('./lib/cache');
 
 var nm = exports
 
 var util = require('./lib/util')
-var enums = require('./enums')
+var enums = require('./lib/enums')
 nm.enums = enums
 
 nm.plugins = {
@@ -26,9 +29,17 @@ var clients = {
 /**
  * returns a service connection
  */
-nm.getService = function (iface) {
+nm.getService = function (service) {
+  service = service || nm.interfaces.NetworkManager
   clients.system = clients.system || dbus.systemBus();
-  return clients.system.getService(iface || nm.interfaces.NetworkManager);
+  return clients.system.getService(service);
+}
+
+var serviceCache = {}
+var getCache = function(service) {
+  service = service || nm.interfaces.NetworkManager;
+  serviceCache[service] = serviceCache[service] || cache.add(service);
+  return serviceCache[service];
 }
 
 /**
@@ -36,28 +47,37 @@ nm.getService = function (iface) {
  * use obj.as(iface) to get the pertaining interface
  */
 nm.getObject = function (path, service) {
-  return new Promise(function(resolve, reject) {
 
+  // load cache first
+  var obj = getCache(service).get(path)
+  if(obj) {
+    return Promise.resolve(obj)
+  }
+
+  return new Promise(function(resolve, reject) {
     nm
       .getService(service)
-      .getObject(path, function (err, obj) {
-
+      .getObject(path.toString(), function (err, obj) {
         if(err) {
           return reject(util.createError(err))
         }
-
         // apply plugin by path
         util.applyPlugin(path, obj)
-
         if(obj && obj.proxy) {
           Object.keys(obj.proxy).forEach(function(iface) {
             util.applyPlugin(iface, obj.as(iface), obj)
           })
         }
-
+        getCache(service).set(path, obj)
         resolve(obj)
       })
-  });
+  })
+}
+
+nm.getObjects = function(paths) {
+  return Promise.all(paths).map(function(path) {
+    return nm.getObject(path)
+  })
 }
 
 nm.getNetworkManager = function () {

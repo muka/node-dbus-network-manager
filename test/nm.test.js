@@ -6,116 +6,52 @@ var cache = {}
 
 describe('NetworkManager', function () {
 
-  describe('create instance', function () {
 
-    it('should return an instance of dbus NetworkManager', function () {
-      return nm.getNetworkManager()
+  it('should return an instance of dbus NetworkManager', function () {
+    return nm.getNetworkManager()
+  })
+
+  it('should return all properties for the NetworkManager', function () {
+    return nm.getNetworkManager().then(function (networkManager) {
+      return networkManager.getOverview()
     })
-
-    it('should return all properties for the NetworkManager', function () {
-      return nm.getNetworkManager().then(function (networkManager) {
-        return networkManager.getOverview()
-      })
-    });
-
-    it('should list available connections', function () {
-      return nm.getNetworkManager().then(function (networkManager) {
-        networkManager
-          .as(nm.interfaces.NetworkManager)
-          .ActiveConnections(function (err, conns) {
-
-            err && console.error(err);
-            assert.equal(!err, true)
-
-            nm.getObject(conns.pop(), function (err, activeConn) {
-
-              err && console.error(err);
-              assert.equal(!err, true)
-
-              // console.log(require('util').inspect(activeConn, { depth: 2 }));
-
-              activeConn
-                .as(nm.interfaces.Properties)
-                .GetAll(nm.interfaces.ConnectionActive, function (err, props) {
-
-                  err && console.error(err);
-                  assert.equal(!err, true)
-
-                  // console.log(require('util').inspect(props, { depth: 2 }));
-
-                  done()
-                })
-
-            })
-
-
-          })
-      })
-    });
-
   });
 
-  describe('Device interface', function () {
-
-    it('should load all devices', function (done) {
-      cache.networkManager.getDevices().then(function () {
-        cache.devices = devices
-        done()
+    it('should load all devices', function () {
+      return nm.getNetworkManager().then(function (networkManager) {
+        return networkManager.getDevices()
       })
     })
 
-    it('should load a device properties', function (done) {
-
-      var device = cache.devices[0]
-      device.getProperties(nm.interfaces.Device, function (err, device) {
-        assert.equal(!err, true)
-        cache.device = device
-        done()
+    it('should load a device properties', function () {
+      return nm.getNetworkManager().then(function (networkManager) {
+        return networkManager.getDevices().then(function(devices) {
+          return devices.pop().getProperties(nm.interfaces.Device)
+        })
       })
-
     });
 
-    it('should load device properties recursively', function (done) {
-
-      var device = cache.devices[0]
-      device.getProperties(nm.interfaces.Device, function (err, device) {
-        assert.equal(!err, true)
-        done()
-      }, 3)
-
+    it('should load device properties recursively', function () {
+      return nm.getNetworkManager().then(function (networkManager) {
+        return networkManager.getDevices().each(function(device) {
+          return device
+            .getProperties(nm.interfaces.Device, 3)
+        })
+      })
     });
 
-    it('should load all active connections', function (done) {
+    it('should load active connections', function () {
+      return nm.getNetworkManager().then(function (networkManager) {
+        return networkManager.getActiveConnections()
+      })
+    })
 
-      cache.networkManager.getActiveConnections(function (err, connections) {
-        // console.log(require('util').inspect(err, { depth: null }));
-        assert.equal(!err, true)
-        assert.equal(connections instanceof Array, true)
-          // console.log(require('util').inspect(connections, { depth: null }));
-        done()
-      }, true)
+    it('should deep-load properties of the active connections', function () {
+      return nm.getNetworkManager().then(function (networkManager) {
+        return networkManager.getActiveConnections().each(function(connection) {
+          return connection.getProperties(nm.interfaces.ConnectionActive, 3)
+        })
+      })
     });
-
-    // it('should deep-load all active connections', function (done) {
-    //
-    //   cache.networkManager.getActiveConnections(function (err, connections) {
-    //
-    //     // console.log(require('util').inspect(err, { depth: null }));
-    //
-    //     assert.equal(!err, true)
-    //     assert.equal(connections instanceof Array, true)
-    //
-    //     // console.log(require('util').inspect(connections.map(function (v) {
-    //     //   return v.properties.get(nm.interfaces.ConnectionActive)
-    //     // }), {
-    //     //   depth: null
-    //     // }));
-    //     done()
-    //
-    //   }, 3, false)
-    //
-    // });
-    //
-  });
 
 });

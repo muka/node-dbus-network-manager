@@ -1,67 +1,60 @@
-
 var cache = require('../lib/cache')
 var util = require('../lib/util')
 var nm = require('../index')
+var Promise = require('bluebird')
 
 module.exports = function (properties, obj) {
 
-  var propsCache = cache.add(obj.name)
+  var propsCache = {}
 
   var GetAll = properties.GetAll
   properties.GetAll = function (iface, fn, refresh) {
+
+    refresh = refresh === undefined ? false : refresh
 
     if(!iface || typeof iface !== 'string') {
       return fn(new Error("Properties.GetAll requires an interface"))
     }
 
-    var _c = propsCache.get(iface)
+    var _c = propsCache[iface]
     if(!refresh && _c) {
       return fn(null, _c)
     }
 
     GetAll(iface, function (err, list) {
+
       if(err) {
         return fn(err)
       }
-      propsCache.set(iface, mapProperties(list, iface))
-      fn(null, propsCache.get(iface))
+
+      propsCache[iface] = propsCache[iface] || {}
+      propsCache[iface] = mapProperties(list, iface)
+
+      fn(null, propsCache[iface])
     })
   }
 
-  var loadProperties = function(iface, objs, onComplete, depth, refresh) {
-
-      if(!(objs instanceof Array)) {
-        return loadProperties(iface, [objs], onComplete, depth, refresh)
-      }
-
-      util.listRun(objs, function (subobj, nextObj) {
-
-        if(!subobj.as(nm.interfaces.Properties)) {
-          return nextObj(null, {})
+  obj.getAllProperties = function (iface, refresh) {
+    return new Promise(function (resolve, reject) {
+      properties.GetAll(iface, function (err, srcProps) {
+        if(err) {
+          return reject(util.createError(err))
         }
+        resolve(JSON.parse(JSON.stringify(srcProps)))
+      }, refresh);
+    });
+  };
 
-        subobj.getProperties(iface, nextObj, depth, refresh)
-
-      }, onComplete)
-  }
-  properties.loadProperties = loadProperties
-  
-  obj.getProperties = function(iface, onComplete, depth, refresh) {
+  obj.getProperties = function (iface, depth, refresh) {
 
     depth = depth === undefined ? 0 : depth;
     depth = depth === true ? 1 : depth === false ? 0 : depth
     depth = parseInt(depth) === NaN ? 0 : depth
 
-    properties.GetAll(iface, function(err, srcProps) {
-
-      var props = JSON.parse(JSON.stringify(srcProps));
-
-      if(err) {
-        return onComplete(err)
-      }
+    return obj.getAllProperties(iface, refresh).then(function (props) {
 
       if(depth === 0) {
-        return onComplete(null, props)
+        return Promise.resolve(props)
       }
 
       var mappedProps = Object.keys(props).filter(function (key) {
@@ -71,51 +64,54 @@ module.exports = function (properties, obj) {
       })
 
       if(!mappedProps.length) {
-        onComplete(err, props)
+        return Promise.resolve(props)
       }
 
-      util.listRun(mappedProps, function (key, nextProperty) {
-
-        var val = props[key];
-        var _isarray = val instanceof Array;
-        var paths = _isarray ? val : [val];
-
-        var ref = nm.enums.mapping[iface][key];
-
-        if(!paths.length) {
-          return nextProperty();
-        }
-
-        util.getObjects(paths, function (err1, childObjs) {
-
-            if(err1) {
-              return nextProperty(err1)
-            }
-
-            loadProperties(ref.iface, childObjs, function (err, childProps) {
-
-              if(err) {
-                return nextProperty(err)
-              }
-
-              if(childProps) {
-                props[key] = _isarray ? childProps : childProps[0]
-                // console.warn(props, val, key, childProps);
-                // process.exit()
-              }
-
-              nextProperty()
-            }, (depth - 1), refresh)
-
-          }) //getObjects
-
-      }, function (err, list) {
-        onComplete(err, props)
-      })
+      return Promise.all(mappedProps).each(function (key) {
+          var val = props[key];
+          var _isarray = val instanceof Array;
+          var paths = _isarray ? val : [val];
+          var ref = nm.enums.mapping[iface][key];
+          if(!paths.length || paths[0] === '/') {
+            return Promise.resolve();
+          }
+          return nm.getObjects(paths)
+            .map(function (childObj) {
+              return childObj
+                .getProperties(ref.iface, (depth - 1), refresh)
+                .then(function (childProps) {
+                  if(childProps) {
+                    props[key] = childProps
+                  }
+                  return Promise.resolve(childProps)
+                })
+            })
+        })
+        .then(function () {
+          return Promise.resolve(props)
+        })
 
     }, refresh)
   }
 
+  // var loadProperties = function(iface, objs, onComplete, depth, refresh) {
+  //
+  //     if(!(objs instanceof Array)) {
+  //       return loadProperties(iface, [objs], onComplete, depth, refresh)
+  //     }
+  //
+  //     util.listRun(objs, function (subobj, nextObj) {
+  //
+  //       if(!subobj.as(nm.interfaces.Properties)) {
+  //         return nextObj(null, {})
+  //       }
+  //
+  //       subobj.getProperties(iface, nextObj, depth, refresh)
+  //
+  //     }, onComplete)
+  // }
+  // properties.loadProperties = loadProperties
+  //
 }
 
 var mapProperties = function (list, propIface) {

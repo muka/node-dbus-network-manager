@@ -14,7 +14,9 @@ module.exports = function (networkManager) {
           if(err) {
             return reject(util.createError(err))
           }
-          return util.getObjects(connectionsPath)
+          nm.getObjects(connectionsPath)
+            .then(resolve)
+            .catch(reject)
         })
     })
   }
@@ -25,11 +27,14 @@ module.exports = function (networkManager) {
   networkManager.getDevices = function () {
     return new Promise(function(resolve, reject) {
       networkManager.as(nm.interfaces.NetworkManager)
-        .GetDevices(function (err, devicesPath) {
+        .GetDevices(function (err, devicePaths) {
           if(err) {
             return reject(util.createError(err))
           }
-          return util.getObjects(devicesPath)
+
+          return nm.getObjects(devicePaths)
+            .then(resolve)
+            .catch(reject)
         })
     });
   }
@@ -40,11 +45,8 @@ module.exports = function (networkManager) {
   networkManager.getOverview = function () {
     return new Promise(function(resolve, reject) {
       networkManager.as(nm.interfaces.Properties)
-        .GetAll(function (err, props) {
-          if(err) {
-            return reject(util.createError(err))
-          }
-          resolve(props)
+        .GetAll(nm.interfaces.NetworkManager, function (err, props) {
+          err ? reject(util.createError(err)) : resolve(props)
         })
     });
   }
