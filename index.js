@@ -2,12 +2,17 @@
 var dbus = require('dbus-native');
 var Promise = require('bluebird');
 var cache = require('./lib/cache');
+var util = require('./lib/util')
+var enums = require('./lib/enums')
 
 var nm = exports
 
-var util = require('./lib/util')
-var enums = require('./lib/enums')
 nm.enums = enums
+nm.Promise = Promise
+
+nm.interfaces = enums.interfaces
+nm.paths = enums.paths
+
 
 nm.plugins = {
   // path
@@ -16,9 +21,6 @@ nm.plugins = {
   // interface
   'org.freedesktop.DBus.Properties': require('./plugin/Properties'),
 }
-
-nm.interfaces = enums.interfaces
-nm.paths = enums.paths
 
 // conn cache
 var clients = {
